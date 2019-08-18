@@ -1,24 +1,23 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ThemeConsumer } from '../contexts/theme'
+import ThemeContext from '../contexts/theme'
 
 export default function Card({ header, subHeader, avatar, href, name, children }) {
+
+    const theme = React.useContext(ThemeContext)
+
     return (
-        <ThemeConsumer>
-            {({ theme }) => (
-            <div className={`card bg-${theme}`}>
-                <h4 className="header-lg center-text">
-                    {header}
-                </h4>
-                <img src={avatar} alt={`Avatar for ${name}`} className="avatar"/>
-                {subHeader &&  <h4 className="center-text">{subHeader}</h4>}
-                <h2 className="center-text">
-                    <a href={href} className="link">{name}</a>
-                </h2>
-                {children}
-            </div>
-            )}
-        </ThemeConsumer>
+        <div className={`card bg-${theme}`}>
+            <h4 className="header-lg center-text">
+                {header}
+            </h4>
+            <img src={avatar} alt={`Avatar for ${name}`} className="avatar"/>
+            {subHeader &&  <h4 className="center-text">{subHeader}</h4>}
+            <h2 className="center-text">
+                <a href={href} className="link">{name}</a>
+            </h2>
+            {children}
+        </div>
     )
 }
 

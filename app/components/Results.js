@@ -43,74 +43,69 @@ ProfileList.propTypes = {
     profile: PropTypes.object.isRequired
 }
 
-export default class Results extends React.Component {
+function ResultsReducer(state, action) {
+    switch (action.type) {
+        case 'success':
+            return { ...state, winner: action.winner, loser: action.loser, error: null, loading: false }
+        case 'error':
+            return { ...state, error: action.message, loading: false }
+        default:
+            throw new Error('Undefined action type!')
+    }
+}
 
-    state = {
+export default function Results({ location: { search } }) {
+
+    const { playerOne, playerTwo } = queryString.parse(search)
+
+    const [state, dispatch] = React.useReducer(ResultsReducer, {
         winner: null,
         loser: null,
         error: null,
         loading: true
-    }
+    })
 
-    componentDidMount() {
-
-        const { playerOne, playerTwo } = queryString.parse(this.props.location.search)
-
+    React.useEffect(() => {
         battle([playerOne, playerTwo])
-            .then(players => {
-                this.setState({
-                    winner: players[0],
-                    loser: players[1],
-                    error: null,
-                    loading: false
-                })
-            })
-            .catch(({ message }) => {
-                this.setState({
-                    error: message,
-                    loading: false
-                })
-            })
+            .then(players => dispatch({ type: 'success', winner: players[0], loser: players[1] }))
+            .catch(({ message }) => dispatch({ type: error, message }))
+    }, [playerOne, playerTwo])
+
+    const { winner, loser, error, loading } = state
+
+    if (loading) {
+        return <Loading />
     }
 
-    render() {
-
-        const { winner, loser, error, loading } = this.state
-
-        if (loading) {
-            return <Loading />
-        }
-
-        if (error) {
-            return <p className="center-text error">{error}</p>
-        }
-
-        return (
-            <>
-                <div className="grid space-around container-sm">
-                    <Card
-                        header={winner.score === loser.score ? 'Tie' : 'Winner'}
-                        subHeader={`Score: ${winner.score.toLocaleString()}`}
-                        avatar={winner.profile.avatar_url}
-                        href={winner.profile.html_url}
-                        name={winner.profile.login}>
-
-                        <ProfileList profile={winner.profile} />
-                    </Card>
-                    <Card
-                        header={winner.score === loser.score ? 'Tie' : 'Loser'}
-                        subHeader={`Score: ${loser.score.toLocaleString()}`}
-                        avatar={loser.profile.avatar_url}
-                        href={loser.profile.html_url}
-                        name={loser.profile.login}>
-
-                        <ProfileList profile={loser.profile} />
-                    </Card>
-                </div>
-                <Link className="btn btn-dark btn-space" to="/battle">
-                    Reset
-                </Link>
-            </>
-        )
+    if (error) {
+        return <p className="center-text error">{error}</p>
     }
+
+    return (
+        <>
+            <div className="grid space-around container-sm">
+                <Card
+                    header={winner.score === loser.score ? 'Tie' : 'Winner'}
+                    subHeader={`Score: ${winner.score.toLocaleString()}`}
+                    avatar={winner.profile.avatar_url}
+                    href={winner.profile.html_url}
+                    name={winner.profile.login}>
+
+                    <ProfileList profile={winner.profile} />
+                </Card>
+                <Card
+                    header={winner.score === loser.score ? 'Tie' : 'Loser'}
+                    subHeader={`Score: ${loser.score.toLocaleString()}`}
+                    avatar={loser.profile.avatar_url}
+                    href={loser.profile.html_url}
+                    name={loser.profile.login}>
+
+                    <ProfileList profile={loser.profile} />
+                </Card>
+            </div>
+            <Link className="btn btn-dark btn-space" to="/battle">
+                Reset
+            </Link>
+        </>
+    )
 }
